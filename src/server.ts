@@ -1,35 +1,33 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import connectDB from "./config/database";
 import authRoutes from "./routes/authRoutes";
-import { sequelize } from "./config/database";
-import { Request, Response, NextFunction } from "express";
+import transactionRoutes from "./routes/transactionRoutes";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Middleware
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/transactions", transactionRoutes);
 
-// Error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
-});
-
-// Sync database and start server
-sequelize
-  .sync()
-  .then(() => {
+// Start server
+const startServer = async () => {
+  try {
+    await connectDB();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error("Database sync error:", err);
-  });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+  }
+};
+
+startServer();

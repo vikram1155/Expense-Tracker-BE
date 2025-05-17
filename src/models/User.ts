@@ -1,64 +1,42 @@
-import { DataTypes, Model } from "sequelize";
-import { sequelize } from "../config/database";
+import { Schema, model, Document } from "mongoose";
 
-interface UserAttributes {
-  id?: number; // Optional for creation
+export interface ITransaction {
+  id: string;
+  type: string;
+  amount: number;
+  name: string;
+  category: string;
+  date: string;
+  method: string;
+  comments?: string;
+}
+
+export interface IUser extends Document {
   name: string;
   email: string;
+  password: string;
   phone?: string;
   dob?: string;
-  password: string;
-  transactions: any[];
+  transactions: ITransaction[];
 }
 
-class User extends Model<UserAttributes> implements UserAttributes {
-  public id!: number; // Non-null in instance
-  public name!: string;
-  public email!: string;
-  public phone?: string;
-  public dob?: string;
-  public password!: string;
-  public transactions!: any[];
-}
+const userSchema = new Schema<IUser>({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  phone: { type: String },
+  dob: { type: String },
+  transactions: [
+    {
+      type: { type: String, required: true },
+      amount: { type: Number, required: true },
+      name: { type: String, required: true },
+      category: { type: String, required: true },
+      date: { type: String, required: true },
+      method: { type: String, required: true },
+      comments: { type: String },
+    },
+  ],
+});
 
-User.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    dob: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    transactions: {
-      type: DataTypes.JSON,
-      allowNull: false,
-      defaultValue: [],
-    },
-  },
-  {
-    sequelize,
-    modelName: "User",
-  }
-);
-
-export default User;
+export default model<IUser>("User", userSchema);
